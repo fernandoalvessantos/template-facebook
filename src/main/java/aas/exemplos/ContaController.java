@@ -21,8 +21,9 @@ public class ContaController {
 		Conta existente = ContaRepository.verificaContas(id);
 		if(existente == null){
 			HttpHeaders headers = new HttpHeaders();
+			String client_id = "";
 			headers.add("Location", "https://www.facebook.com/v4.0/dialog/oauth?" +
-					"client_id=1214564605402397&" +
+					"client_id="+client_id+"&" +
 					"redirect_uri=http://localhost:8080/conta/cadastro/"+id+"&" +
 					"state=codsegurancateste");
 
@@ -68,11 +69,7 @@ public class ContaController {
 				"&redirect_uri=http://localhost:8080/conta/cadastro/"+id+"" +
 				"&access_token="+tknClt+"";
 
-		/*
-		"https://graph.facebook.com/v4.0/debug_token?" +
-				"input_token=EAARQo9vcnR0BAFOqGirceKjYrZCg30wSfaUouSRb3oPyB6uJbAEsQ3u4ZABzIQA51il8zERptvelsR0Ua2tSQBMTWZBF0cmebka9iyaCnULeinAZCzkT9Xzpd5NOWcJBaoGTCZCzxpE8maFhL4eck4M7CBTtMr0pzMy40S3xM72RYGFAOjZCvc" +
-				"&access_token=EAARQo9vcnR0BAEIvNwL4MwxDJL2ZBIN7BkIHz0ZCQdt1TPNHQdEPl0fBZBybxKV4dy57oSvPSXQXSS0rvwhKZB1TKvA2EoHMAt0OacVNUQ0qdHm6rWpCESPUBZCyVZAgFXhCxwxMu09ZAc1h17dSw2LFlT4f6GRHHUoGiyNremCjuKSoUTtbcTnoYUn6E1dNJRbfCCXobekuwZDZD";
-				*/
+
 
 		ResponseDebugToken responseDebugToken = restTemplate.getForObject(urlDebugToken, ResponseDebugToken.class);
 		System.out.println(responseDebugToken.getData().getUser_id());
