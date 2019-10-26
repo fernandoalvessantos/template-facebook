@@ -8,8 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.web.servlet.view.RedirectView;
 
 @RestController
 public class ContaController {
@@ -51,6 +51,31 @@ public class ContaController {
 	public ResponseEntity<Conta> cadastrarConta(@PathVariable("id") Long id, @PathParam("code") String code, @PathParam("state") String state) {
 
 		System.out.println("CHEGOU:"+id);
+
+		RestTemplate restTemplate = new RestTemplate();
+		String client_id = "1214564605402397";
+		String clt_scrt = "79290e88acd195c8904ca5d6e08fc5ee";
+		String urlToken = "https://graph.facebook.com/v4.0/oauth/access_token?" +
+				"client_id="+client_id+"" +
+				"&redirect_uri=http://localhost:8080/conta/cadastro/"+id+"" +
+				"&client_secret="+clt_scrt+"" +
+				"&code="+code+"";
+		RespostaToken respostaToken = restTemplate.getForObject(urlToken, RespostaToken.class);
+
+		String tknClt = "dc47f19219170be103a831f1014dd7eb";
+		String urlDebugToken = "https://graph.facebook.com/v4.0/debug_token?" +
+				"input_token="+respostaToken.getAccess_token()+"" +
+				"&redirect_uri=http://localhost:8080/conta/cadastro/"+id+"" +
+				"&access_token="+tknClt+"";
+
+		/*
+		"https://graph.facebook.com/v4.0/debug_token?" +
+				"input_token=EAARQo9vcnR0BAFOqGirceKjYrZCg30wSfaUouSRb3oPyB6uJbAEsQ3u4ZABzIQA51il8zERptvelsR0Ua2tSQBMTWZBF0cmebka9iyaCnULeinAZCzkT9Xzpd5NOWcJBaoGTCZCzxpE8maFhL4eck4M7CBTtMr0pzMy40S3xM72RYGFAOjZCvc" +
+				"&access_token=EAARQo9vcnR0BAEIvNwL4MwxDJL2ZBIN7BkIHz0ZCQdt1TPNHQdEPl0fBZBybxKV4dy57oSvPSXQXSS0rvwhKZB1TKvA2EoHMAt0OacVNUQ0qdHm6rWpCESPUBZCyVZAgFXhCxwxMu09ZAc1h17dSw2LFlT4f6GRHHUoGiyNremCjuKSoUTtbcTnoYUn6E1dNJRbfCCXobekuwZDZD";
+				*/
+
+		ResponseDebugToken responseDebugToken = restTemplate.getForObject(urlDebugToken, ResponseDebugToken.class);
+		System.out.println(responseDebugToken.getData().getUser_id());
 		//throw new UnsupportedOperationException("Endpoint02 não implementado");
 		
 		// Endpoint 02:
