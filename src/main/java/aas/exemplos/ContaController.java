@@ -53,8 +53,8 @@ public class ContaController {
 		System.out.println("CHEGOU:"+id);
 
 		RestTemplate restTemplate = new RestTemplate();
-		String client_id = "1214564605402397";
-		String clt_scrt = "79290e88acd195c8904ca5d6e08fc5ee";
+		String client_id = "";
+		String clt_scrt = "";
 		String urlToken = "https://graph.facebook.com/v4.0/oauth/access_token?" +
 				"client_id="+client_id+"" +
 				"&redirect_uri=http://localhost:8080/conta/cadastro/"+id+"" +
@@ -62,7 +62,7 @@ public class ContaController {
 				"&code="+code+"";
 		RespostaToken respostaToken = restTemplate.getForObject(urlToken, RespostaToken.class);
 
-		String tknClt = "dc47f19219170be103a831f1014dd7eb";
+		String tknClt = "";
 		String urlDebugToken = "https://graph.facebook.com/v4.0/debug_token?" +
 				"input_token="+respostaToken.getAccess_token()+"" +
 				"&redirect_uri=http://localhost:8080/conta/cadastro/"+id+"" +
