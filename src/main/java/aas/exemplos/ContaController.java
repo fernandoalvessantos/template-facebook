@@ -14,14 +14,16 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @RestController
 public class ContaController {
 
+	private String client_id = ""; // ID client app fb
+	private String client_scrt = ""; // pass client app fb
 
 
 	@GetMapping("/conta/{id}")
-	public ResponseEntity<Conta> recuperaConta(@PathVariable("id") Long id, RedirectAttributes redirectAttributes) {
+	public ResponseEntity<Conta> recuperaConta(@PathVariable("id") Long id) {
 		Conta existente = ContaRepository.verificaContas(id);
 		if(existente == null){
 			HttpHeaders headers = new HttpHeaders();
-			String client_id = "";
+
 			headers.add("Location", "https://www.facebook.com/v4.0/dialog/oauth?" +
 					"client_id="+client_id+"&" +
 					"redirect_uri=http://localhost:8080/conta/cadastro/"+id+"&" +
@@ -51,28 +53,45 @@ public class ContaController {
 	@GetMapping("/conta/cadastro/{id}")
 	public ResponseEntity<Conta> cadastrarConta(@PathVariable("id") Long id, @PathParam("code") String code, @PathParam("state") String state) {
 
-		System.out.println("CHEGOU:"+id);
-
+		// Token do usuario
 		RestTemplate restTemplate = new RestTemplate();
-		String client_id = "";
-		String clt_scrt = "";
+
 		String urlToken = "https://graph.facebook.com/v4.0/oauth/access_token?" +
 				"client_id="+client_id+"" +
 				"&redirect_uri=http://localhost:8080/conta/cadastro/"+id+"" +
-				"&client_secret="+clt_scrt+"" +
+				"&client_secret="+ client_scrt +"" +
 				"&code="+code+"";
-		RespostaToken respostaToken = restTemplate.getForObject(urlToken, RespostaToken.class);
+		RespostaToken tokenUsuario = restTemplate.getForObject(urlToken, RespostaToken.class);
 
-		String tknClt = "";
+		// buscando token de acesso
+		String urlTokenAcesso = "https://graph.facebook.com/oauth/access_token?" +
+				"client_id="+client_id+"&" +
+				"client_secret="+ client_scrt +"&grant_type=client_credentials";
+
+		RespostaToken tokenAcesso = restTemplate.getForObject(urlTokenAcesso, RespostaToken.class);
+
+		//Validando
 		String urlDebugToken = "https://graph.facebook.com/v4.0/debug_token?" +
-				"input_token="+respostaToken.getAccess_token()+"" +
-				"&redirect_uri=http://localhost:8080/conta/cadastro/"+id+"" +
-				"&access_token="+tknClt+"";
-
-
-
+				"input_token="+tokenUsuario.getAccess_token()+"&" +
+				"access_token="+tokenAcesso.getAccess_token();
 		ResponseDebugToken responseDebugToken = restTemplate.getForObject(urlDebugToken, ResponseDebugToken.class);
-		System.out.println(responseDebugToken.getData().getUser_id());
+
+		//get Dados Usuario
+		String urlDados = "https://graph.facebook.com/" + responseDebugToken.getData().getUser_id() +
+				"?fields=id,name"+
+				"&access_token="+tokenUsuario.getAccess_token();
+		ResponseDadosUsuario responseDadosUsuario = restTemplate.getForObject(urlDados, ResponseDadosUsuario.class);
+
+		Conta conta = new Conta();
+		conta.setFacebookId(responseDadosUsuario.getId());
+		conta.setNome(responseDadosUsuario.getName());
+		conta.setId(id);
+		ContaRepository.adicionaConta(conta);
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Location", "http://localhost:8080/conta/"+id);
+
+		return new ResponseEntity<Conta>(headers, HttpStatus. TEMPORARY_REDIRECT);
 		//throw new UnsupportedOperationException("Endpoint02 não implementado");
 		
 		// Endpoint 02:
@@ -86,6 +105,6 @@ public class ContaController {
 		// Retorna um redirecionamento para o usuário:
 		//     O status da resposta é um http redirect 307;
 		//     Adiciona na resposta um cabeçalho "Location", cujo valor é o Endpoint 01 com o identificador do usuário
-		return ResponseEntity.ok().build();
+		//return ResponseEntity.status(HttpStatus.OK).body(conta);
 	}
 }
